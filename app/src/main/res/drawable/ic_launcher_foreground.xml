@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Ring -->
+    <path
+        android:strokeColor="#FF6500"
+        android:strokeWidth="2.5"
+        android:pathData="M 54,20 A 34,34 0 1 1 53.9,20 Z" />
+
+    <!-- Inner Satellite Bezel Ring -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.2"
+        android:strokeAlpha="0.6"
+        android:pathData="M 54,26 A 28,28 0 1 1 53.9,26 Z" />
+
+    <!-- Mountain Silhouettes inside compass -->
+    <path
+        android:fillColor="#38BDF8"
+        android:fillAlpha="0.35"
+        android:pathData="M32,66 L46,48 L56,60 L64,52 L76,66 Z" />
+
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M40,66 L52,50 L60,60 L68,52 L76,66 Z" />
+
+    <!-- Compass Rose North Arrow (Safety Orange) -->
+    <path
+        android:fillColor="#FF6500"
+        android:pathData="M54,23 L60,54 L54,50 Z" />
+
+    <!-- Compass Rose North Left Half (Bright Amber) -->
+    <path
+        android:fillColor="#FFB200"
+        android:pathData="M54,23 L54,50 L48,54 Z" />
+
+    <!-- Compass South Arrow (White & Light Gray) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,85 L48,54 L54,58 Z" />
+
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M54,85 L54,58 L60,54 Z" />
+
+    <!-- East and West Pointers -->
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M23,54 L54,48 L50,54 Z" />
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M85,54 L54,48 L58,54 Z" />
+
+    <!-- Center Pivot Pin -->
+    <path
+        android:fillColor="#0B192C"
+        android:pathData="M 54,51 A 3,3 0 1 1 53.9,51 Z" />
+    <path
+        android:fillColor="#FF6500"
+        android:pathData="M 54,52.5 A 1.5,1.5 0 1 1 53.9,52.5 Z" />
+
+    <!-- Cardinal Ticks -->
+    <path
+        android:strokeColor="#FF6500"
+        android:strokeWidth="2.5"
+        android:pathData="M54,16 L54,20" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M54,88 L54,92" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M16,54 L20,54" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M88,54 L92,54" />
+</vector>
