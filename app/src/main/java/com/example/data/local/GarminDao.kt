@@ -46,6 +46,9 @@ interface GarminDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrack(track: TrackEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTracks(tracks: List<TrackEntity>)
+
     @Delete
     suspend fun deleteTrack(track: TrackEntity)
 

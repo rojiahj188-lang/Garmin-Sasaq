@@ -35,5 +35,6 @@ data class TrackEntity(
     val elevationGainMeters: Double = 0.0,
     val avgSpeedKmh: Double = 0.0,
     val waypointsCount: Int = 0,
-    val notes: String = ""
+    val notes: String = "",
+    val elevationPointsData: String = ""
 )

@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Tune
@@ -57,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.model.CoordinateFormat
+import com.example.model.DeviceAccessMode
 import com.example.model.UnitSystem
 import com.example.ui.components.GarminCard
 import com.example.ui.theme.DarkTacticalBackground
@@ -106,6 +110,8 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 840.dp)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -256,6 +262,124 @@ fun SettingsScreen(
                             Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Telepon", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+
+            // Mode Akses Perangkat (Laptop vs Handheld)
+            val deviceAccessMode by viewModel.deviceAccessMode.collectAsStateWithLifecycle()
+            GarminCard(title = "💻 MODE AKSES PERANGKAT (LAPTOP / WORKSTATION)") {
+                Text(
+                    text = "Atur tata letak antarmuka aplikasi sesuai perangkat yang Anda gunakan (Mode Laptop/Desktop PC atau Mode Ponsel):",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFCBD5E1)
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                DeviceAccessMode.values().forEach { mode ->
+                    val isSelected = deviceAccessMode == mode
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isSelected) GarminCyan.copy(alpha = 0.2f) else Color(0xFF1E293B),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.5.dp,
+                            if (isSelected) GarminCyan else DarkTacticalBorder
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable { viewModel.setDeviceAccessMode(mode) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = mode.icon, fontSize = 24.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = mode.label,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = if (isSelected) GarminCyan else Color.White
+                                    )
+                                    if (isSelected) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            color = GarminCyan.copy(alpha = 0.25f)
+                                        ) {
+                                            Text(
+                                                text = "AKTIF",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.ExtraBold
+                                                ),
+                                                color = GarminCyan,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = mode.description,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                    color = Color(0xFF94A3B8)
+                                )
+                            }
+                            if (isSelected) {
+                                Surface(
+                                    color = GarminCyan,
+                                    shape = CircleShape,
+                                    modifier = Modifier.size(12.dp)
+                                ) {}
+                            }
+                        }
+                    }
+                }
+
+                if (deviceAccessMode == DeviceAccessMode.LAPTOP) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF0F172A),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GarminCyan.copy(alpha = 0.4f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Laptop,
+                                    contentDescription = null,
+                                    tint = GarminCyan,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "FITUR MODE AKSES LAPTOP AKTIF:",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = GarminCyan
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "• Bilah Navigasi Rail Sisi Kiri (Dock 8 modul navigasi)\n" +
+                                        "• Pintasan Keyboard Cepat:\n" +
+                                        "   [1] GPS Radar    [2] Pendakian    [3] Elevasi    [4] Cuaca\n" +
+                                        "   [5] Kiblat       [6] Peta Offline [7] Riwayat    [8] Pengaturan\n" +
+                                        "   [S] Tombol SOS   [L] Beralih Cepat Laptop / Handheld\n" +
+                                        "• Tata Letak Dual-Pane Workstation di Layar Lebar & Landscape\n" +
+                                        "• Kompatibilitas Penuh Mouse, Trackpad, dan Keyboard Eksternal",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 11.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    lineHeight = 16.sp
+                                ),
+                                color = Color(0xFFE2E8F0)
+                            )
                         }
                     }
                 }

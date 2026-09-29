@@ -16,6 +16,7 @@ import com.example.data.local.GarminRepository
 import com.example.data.local.LocationEntity
 import com.example.data.local.TrackEntity
 import com.example.model.CoordinateFormat
+import com.example.model.DeviceAccessMode
 import com.example.model.LocationCategory
 import com.example.model.NavigationTarget
 import com.example.model.UnitSystem
@@ -192,6 +193,10 @@ class GarminViewModel(application: Application) : AndroidViewModel(application) 
     private var lastWeatherFetchTime = 0L
 
     // Settings
+    // Default to LAPTOP mode per user request: "ganti mode aplikasi perangkat android ini ke Mode akses perangkat Laptop"
+    private val _deviceAccessMode = MutableStateFlow(DeviceAccessMode.LAPTOP)
+    val deviceAccessMode: StateFlow<DeviceAccessMode> = _deviceAccessMode.asStateFlow()
+
     private val _unitSystem = MutableStateFlow(UnitSystem.METRIC)
     val unitSystem: StateFlow<UnitSystem> = _unitSystem.asStateFlow()
 
@@ -246,6 +251,10 @@ class GarminViewModel(application: Application) : AndroidViewModel(application) 
         SharingStarted.WhileSubscribed(5000),
         calculateEnvironmentWeather(-8.65, 116.14, 120.0)
     )
+
+    fun setDeviceAccessMode(mode: DeviceAccessMode) {
+        _deviceAccessMode.value = mode
+    }
 
     fun setUnitSystem(system: UnitSystem) {
         _unitSystem.value = system
@@ -394,6 +403,7 @@ class GarminViewModel(application: Application) : AndroidViewModel(application) 
     fun stopHikingAndSave(trailName: String = "Jalur Pendakian Garmin") {
         val curr = _hikingState.value
         hikingTimerJob?.cancel()
+        val elevDataStr = curr.elevationHistory.joinToString(";") { "${it.first},${it.second}" }
         viewModelScope.launch {
             repository.insertTrack(
                 TrackEntity(
@@ -406,7 +416,8 @@ class GarminViewModel(application: Application) : AndroidViewModel(application) 
                     minElevationMeters = curr.minElevationMeters,
                     elevationGainMeters = curr.elevationGainMeters,
                     avgSpeedKmh = if (curr.elapsedTimeSeconds > 0) (curr.totalDistanceMeters / curr.elapsedTimeSeconds) * 3.6 else 0.0,
-                    waypointsCount = curr.waypointsLogged
+                    waypointsCount = curr.waypointsLogged,
+                    elevationPointsData = elevDataStr
                 )
             )
             _hikingState.value = HikingTrackState()

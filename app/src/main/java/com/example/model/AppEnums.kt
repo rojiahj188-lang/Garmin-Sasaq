@@ -22,6 +22,12 @@ enum class UnitSystem(val label: String) {
     IMPERIAL("Imperial (mi, ft, mph)")
 }
 
+enum class DeviceAccessMode(val label: String, val description: String, val icon: String) {
+    LAPTOP("Mode Akses Laptop", "Tampilan desktop/laptop dengan sidebar rail, hotkey keyboard, dan layout workstation", "💻"),
+    HANDHELD("Mode Akses Ponsel", "Tampilan ponsel ringkas dengan bilah navigasi bawah sentuhan satu tangan", "📱"),
+    AUTO("Mode Otomatis", "Menyesuaikan otomatis berdasarkan ukuran layar perangkat", "🔄")
+}
+
 enum class CoordinateFormat(val label: String) {
     DECIMAL_DEGREES("Desimal (DD.ddddd°)"),
     DEGREES_MINUTES_SECONDS("DMS (DD° MM' SS\" N/S)")

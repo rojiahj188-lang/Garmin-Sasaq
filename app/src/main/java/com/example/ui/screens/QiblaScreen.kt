@@ -4,15 +4,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -102,141 +106,219 @@ fun QiblaScreen(
         },
         containerColor = DarkTacticalBackground
     ) { innerPadding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Alignment Banner
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = if (isAligned) GarminEmerald.copy(alpha = 0.2f) else DarkTacticalSurface,
-                border = androidx.compose.foundation.BorderStroke(
-                    1.5.dp,
-                    if (isAligned) GarminEmerald else DarkTacticalBorder
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            val isDesktop = maxWidth >= 860.dp
+
+            if (isDesktop) {
+                // PC / Laptop Dual-Pane Layout
                 Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                        .widthIn(max = 1400.dp)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    Box(
+                    // Left Column: Alignment Banner & Big Compass Dial
+                    Column(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(if (isAligned) GarminEmerald else GarminOrange.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isAligned) Icons.Default.CheckCircle else Icons.Default.Mosque,
-                            contentDescription = null,
-                            tint = if (isAligned) Color.White else GarminOrange
+                        QiblaAlignmentBanner(isAligned = isAligned, qiblaBearing = qiblaBearing, deviation = deviation)
+
+                        CompassDial(
+                            azimuthDegrees = compassData.azimuthDegrees,
+                            qiblaBearing = qiblaBearing,
+                            isQiblaAligned = isAligned,
+                            modifier = Modifier
+                                .fillMaxWidth(0.95f)
+                                .height(380.dp)
                         )
+                        Spacer(modifier = Modifier.height(40.dp))
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column {
-                        Text(
-                            text = if (isAligned) "TEPAT MENGHADAP KIBLAT (KA'BAH)" else "ARAHKAN HP HINGGA JARUM HIJAU SELARAS",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (isAligned) GarminEmerald else GarminOrange
+                    // Right Column: Kaaba Telemetry & Sensor Calibration
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        KaabaTelemetryCard(
+                            qiblaDistanceKm = qiblaDistanceKm,
+                            qiblaBearing = qiblaBearing,
+                            locationData = locationData,
+                            coordFormat = coordFormat
                         )
-                        Text(
-                            text = if (isAligned) "Getaran aktif • Posisi presisi" else "Azimuth Kiblat: ${qiblaBearing.toInt()}° (Deviasi: ${deviation.toInt()}°)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF94A3B8)
-                        )
+                        CompassCalibrationCard()
+                        Spacer(modifier = Modifier.height(40.dp))
                     }
+                }
+            } else {
+                // Mobile Handheld Layout
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                        .widthIn(max = 680.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    QiblaAlignmentBanner(isAligned = isAligned, qiblaBearing = qiblaBearing, deviation = deviation)
+
+                    CompassDial(
+                        azimuthDegrees = compassData.azimuthDegrees,
+                        qiblaBearing = qiblaBearing,
+                        isQiblaAligned = isAligned,
+                        modifier = Modifier
+                            .fillMaxWidth(0.92f)
+                            .height(310.dp)
+                    )
+
+                    KaabaTelemetryCard(
+                        qiblaDistanceKm = qiblaDistanceKm,
+                        qiblaBearing = qiblaBearing,
+                        locationData = locationData,
+                        coordFormat = coordFormat
+                    )
+
+                    CompassCalibrationCard()
+
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Compass Dial with Qibla alignment
-            CompassDial(
-                azimuthDegrees = compassData.azimuthDegrees,
-                qiblaBearing = qiblaBearing,
-                isQiblaAligned = isAligned,
+@Composable
+fun QiblaAlignmentBanner(isAligned: Boolean, qiblaBearing: Float, deviation: Float) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (isAligned) GarminEmerald.copy(alpha = 0.2f) else DarkTacticalSurface,
+        border = androidx.compose.foundation.BorderStroke(
+            1.5.dp,
+            if (isAligned) GarminEmerald else DarkTacticalBorder
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .height(310.dp)
-            )
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(if (isAligned) GarminEmerald else GarminOrange.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isAligned) Icons.Default.CheckCircle else Icons.Default.Mosque,
+                    contentDescription = null,
+                    tint = if (isAligned) Color.White else GarminOrange
+                )
+            }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Telemetry Cards
-            GarminCard(title = "TELEMETRI KOORDINAT KA'BAH") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = "JARAK KE MEKKAH",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF94A3B8)
-                        )
-                        Text(
-                            text = String.format(Locale.US, "%,.1f km", qiblaDistanceKm),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = GarminEmerald
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = "DERAJAT KIBLAT",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF94A3B8)
-                        )
-                        Text(
-                            text = String.format(Locale.US, "%.1f° BL", qiblaBearing),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = GarminOrange
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
+            Column {
                 Text(
-                    text = "Posisi GPS Pengguna: ${LocationServiceManager.formatCoordinates(locationData.latitude, locationData.longitude, coordFormat)}",
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                    text = if (isAligned) "TEPAT MENGHADAP KIBLAT (KA'BAH)" else "ARAHKAN HP HINGGA JARUM HIJAU SELARAS",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = if (isAligned) GarminEmerald else GarminOrange
+                )
+                Text(
+                    text = if (isAligned) "Getaran aktif • Posisi presisi" else "Azimuth Kiblat: ${qiblaBearing.toInt()}° (Deviasi: ${deviation.toInt()}°)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF94A3B8)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun KaabaTelemetryCard(
+    qiblaDistanceKm: Double,
+    qiblaBearing: Float,
+    locationData: com.example.sensor.GpsLocationData,
+    coordFormat: CoordinateFormat
+) {
+    GarminCard(title = "TELEMETRI KOORDINAT KA'BAH") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "JARAK KE MEKKAH",
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFF94A3B8)
                 )
                 Text(
-                    text = "Koordinat Ka'bah: 21.4225° N, 39.8262° E (Masjidil Haram)",
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                    color = Color(0xFF64748B)
+                    text = String.format(Locale.US, "%,.1f km", qiblaDistanceKm),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = GarminEmerald
                 )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Calibration Note
-            GarminCard(title = "PETUNJUK KALIBRASI KOMPAS SENSOR") {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Sync, contentDescription = null, tint = GarminAmber)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Gerakkan perangkat membentuk angka delapan (∞) di udara untuk meningkatkan akurasi sensor geomagnetik bila jarum tidak stabil.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFCBD5E1)
-                    )
-                }
+            Column {
+                Text(
+                    text = "DERAJAT KIBLAT",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF94A3B8)
+                )
+                Text(
+                    text = String.format(Locale.US, "%.1f° BL", qiblaBearing),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = GarminOrange
+                )
             }
+        }
 
-            Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "Posisi GPS Pengguna: ${LocationServiceManager.formatCoordinates(locationData.latitude, locationData.longitude, coordFormat)}",
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+            color = Color(0xFF94A3B8)
+        )
+        Text(
+            text = "Koordinat Ka'bah: 21.4225° N, 39.8262° E (Masjidil Haram)",
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+            color = Color(0xFF64748B)
+        )
+    }
+}
+
+@Composable
+fun CompassCalibrationCard() {
+    GarminCard(title = "PETUNJUK KALIBRASI KOMPAS SENSOR") {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Sync, contentDescription = null, tint = GarminAmber)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Gerakkan perangkat membentuk angka delapan (∞) di udara untuk meningkatkan akurasi sensor geomagnetik bila jarum tidak stabil.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFFCBD5E1)
+            )
         }
     }
 }

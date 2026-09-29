@@ -8,19 +8,25 @@ import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
@@ -151,110 +157,273 @@ fun HistoryScreen(
         },
         containerColor = DarkTacticalBackground
     ) { innerPadding ->
-        LazyColumn(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Summary Card
-            item {
-                GarminCard(
-                    title = "BASIS DATA KOORDINAT & LOGBOOK",
-                    badgeText = "${savedLocations.size} TERSIMPAN",
-                    badgeColor = GarminOrange
-                ) {
-                    Text(
-                        text = "Semua titik koordinat disimpan secara persisten di penyimpanan database lokal Room offline tanpa memerlukan koneksi internet.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFCBD5E1)
-                    )
-                }
-            }
+            val isDesktop = maxWidth >= 860.dp
 
-            // Filter Tabs
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val tabs = listOf("SEMUA", "FAVORIT", "HARTA", "MINERAL", "PUSAKA", "PRIORITAS", "PENDAKIAN")
-                    items(tabs) { tab ->
-                        val isSelected = selectedFilter == tab
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isSelected) GarminOrange else Color(0xFF1E293B),
-                            modifier = Modifier.clickable { selectedFilter = tab }
+            if (isDesktop) {
+                // PC / Laptop Dual-Pane Layout
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                        .widthIn(max = 1600.dp)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Left Column: Summary, Category Filters, and Stats
+                    Column(
+                        modifier = Modifier
+                            .weight(0.75f)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        GarminCard(
+                            title = "BASIS DATA KOORDINAT & LOGBOOK",
+                            badgeText = "${savedLocations.size} TITIK",
+                            badgeColor = GarminOrange
                         ) {
                             Text(
-                                text = tab,
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = if (isSelected) Color.White else Color(0xFF94A3B8),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                text = "Semua titik koordinat disimpan secara persisten di database lokal Room offline tanpa memerlukan koneksi internet.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFCBD5E1)
                             )
                         }
-                    }
-                }
-            }
 
-            if (filteredLocations.isEmpty()) {
-                item {
-                    Card(
+                        GarminCard(title = "KATEGORI LOGBOOK") {
+                            val tabs = listOf("SEMUA", "FAVORIT", "HARTA", "MINERAL", "PUSAKA", "PRIORITAS", "PENDAKIAN")
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                tabs.forEach { tab ->
+                                    val isSelected = selectedFilter == tab
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isSelected) GarminOrange else Color(0xFF1E293B),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { selectedFilter = tab }
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = tab,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = if (isSelected) Color.White else Color(0xFF94A3B8)
+                                            )
+                                            val count = savedLocations.count {
+                                                when (tab) {
+                                                    "SEMUA" -> true
+                                                    "FAVORIT" -> it.isFavorite
+                                                    "HARTA" -> it.category == "TREASURE"
+                                                    "MINERAL" -> it.category == "MINERAL"
+                                                    "PUSAKA" -> it.category == "HERITAGE"
+                                                    "PRIORITAS" -> it.category == "PRIORITY_ZONE"
+                                                    "PENDAKIAN" -> it.category == "HIKING"
+                                                    else -> true
+                                                }
+                                            }
+                                            Text(
+                                                text = "$count",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                                color = if (isSelected) Color.White else GarminCyan
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
+
+                    // Right Column: Filtered Locations List
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, DarkTacticalBorder, RoundedCornerShape(10.dp)),
-                        colors = CardDefaults.cardColors(containerColor = DarkTacticalSurface)
+                            .weight(1.25f)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         Text(
-                            text = "Tidak ada titik lokasi tersimpan dalam kategori ini.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF94A3B8),
-                            modifier = Modifier.padding(16.dp)
+                            text = "DAFTAR KOORDINAT ($selectedFilter: ${filteredLocations.size})",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = GarminOrange
                         )
+
+                        if (filteredLocations.isEmpty()) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, DarkTacticalBorder, RoundedCornerShape(10.dp)),
+                                colors = CardDefaults.cardColors(containerColor = DarkTacticalSurface)
+                            ) {
+                                Text(
+                                    text = "Tidak ada titik lokasi tersimpan dalam kategori ini.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF94A3B8),
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        } else {
+                            filteredLocations.forEach { loc ->
+                                val dist = CompassSensorManager.calculateDistanceMeters(
+                                    locationData.latitude, locationData.longitude, loc.latitude, loc.longitude
+                                )
+
+                                HistoryLocationCard(
+                                    loc = loc,
+                                    distanceMeters = dist,
+                                    unitSystem = unitSystem,
+                                    coordFormat = coordFormat,
+                                    onCopy = {
+                                        val coordStr = LocationServiceManager.formatCoordinates(loc.latitude, loc.longitude, coordFormat)
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("Koordinat", coordStr))
+                                        Toast.makeText(context, "Koordinat disalin: $coordStr", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onToggleFavorite = { viewModel.toggleLocationFavorite(loc) },
+                                    onNavigate = {
+                                        val cat = try {
+                                            LocationCategory.valueOf(loc.category)
+                                        } catch (_: Exception) {
+                                            LocationCategory.WAYPOINT
+                                        }
+                                        viewModel.setActiveTarget(
+                                            NavigationTarget(
+                                                id = loc.id,
+                                                title = loc.title,
+                                                latitude = loc.latitude,
+                                                longitude = loc.longitude,
+                                                altitude = loc.altitude,
+                                                category = cat,
+                                                details = loc.details
+                                            )
+                                        )
+                                        onBack()
+                                    },
+                                    onDelete = { viewModel.deleteLocation(loc) }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
                     }
                 }
             } else {
-                items(filteredLocations) { loc ->
-                    val dist = CompassSensorManager.calculateDistanceMeters(
-                        locationData.latitude, locationData.longitude, loc.latitude, loc.longitude
-                    )
-
-                    HistoryLocationCard(
-                        loc = loc,
-                        distanceMeters = dist,
-                        unitSystem = unitSystem,
-                        coordFormat = coordFormat,
-                        onCopy = {
-                            val coordStr = LocationServiceManager.formatCoordinates(loc.latitude, loc.longitude, coordFormat)
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            clipboard.setPrimaryClip(ClipData.newPlainText("Koordinat", coordStr))
-                            Toast.makeText(context, "Koordinat disalin: $coordStr", Toast.LENGTH_SHORT).show()
-                        },
-                        onToggleFavorite = { viewModel.toggleLocationFavorite(loc) },
-                        onNavigate = {
-                            val cat = try {
-                                LocationCategory.valueOf(loc.category)
-                            } catch (_: Exception) {
-                                LocationCategory.WAYPOINT
-                            }
-                            viewModel.setActiveTarget(
-                                NavigationTarget(
-                                    id = loc.id,
-                                    title = loc.title,
-                                    latitude = loc.latitude,
-                                    longitude = loc.longitude,
-                                    altitude = loc.altitude,
-                                    category = cat,
-                                    details = loc.details
-                                )
+                // Mobile Handheld Layout
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Summary Card
+                    item {
+                        GarminCard(
+                            title = "BASIS DATA KOORDINAT & LOGBOOK",
+                            badgeText = "${savedLocations.size} TERSIMPAN",
+                            badgeColor = GarminOrange
+                        ) {
+                            Text(
+                                text = "Semua titik koordinat disimpan secara persisten di penyimpanan database lokal Room offline tanpa memerlukan koneksi internet.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFCBD5E1)
                             )
-                            onBack()
-                        },
-                        onDelete = { viewModel.deleteLocation(loc) }
-                    )
-                }
-            }
+                        }
+                    }
 
-            item {
-                Spacer(modifier = Modifier.height(40.dp))
+                    // Filter Tabs
+                    item {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            val tabs = listOf("SEMUA", "FAVORIT", "HARTA", "MINERAL", "PUSAKA", "PRIORITAS", "PENDAKIAN")
+                            items(tabs) { tab ->
+                                val isSelected = selectedFilter == tab
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isSelected) GarminOrange else Color(0xFF1E293B),
+                                    modifier = Modifier.clickable { selectedFilter = tab }
+                                ) {
+                                    Text(
+                                        text = tab,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = if (isSelected) Color.White else Color(0xFF94A3B8),
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (filteredLocations.isEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, DarkTacticalBorder, RoundedCornerShape(10.dp)),
+                                colors = CardDefaults.cardColors(containerColor = DarkTacticalSurface)
+                            ) {
+                                Text(
+                                    text = "Tidak ada titik lokasi tersimpan dalam kategori ini.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF94A3B8),
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        items(filteredLocations) { loc ->
+                            val dist = CompassSensorManager.calculateDistanceMeters(
+                                locationData.latitude, locationData.longitude, loc.latitude, loc.longitude
+                            )
+
+                            HistoryLocationCard(
+                                loc = loc,
+                                distanceMeters = dist,
+                                unitSystem = unitSystem,
+                                coordFormat = coordFormat,
+                                onCopy = {
+                                    val coordStr = LocationServiceManager.formatCoordinates(loc.latitude, loc.longitude, coordFormat)
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    clipboard.setPrimaryClip(ClipData.newPlainText("Koordinat", coordStr))
+                                    Toast.makeText(context, "Koordinat disalin: $coordStr", Toast.LENGTH_SHORT).show()
+                                },
+                                onToggleFavorite = { viewModel.toggleLocationFavorite(loc) },
+                                onNavigate = {
+                                    val cat = try {
+                                        LocationCategory.valueOf(loc.category)
+                                    } catch (_: Exception) {
+                                        LocationCategory.WAYPOINT
+                                    }
+                                    viewModel.setActiveTarget(
+                                        NavigationTarget(
+                                            id = loc.id,
+                                            title = loc.title,
+                                            latitude = loc.latitude,
+                                            longitude = loc.longitude,
+                                            altitude = loc.altitude,
+                                            category = cat,
+                                            details = loc.details
+                                        )
+                                    )
+                                    onBack()
+                                },
+                                onDelete = { viewModel.deleteLocation(loc) }
+                            )
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
+                }
             }
         }
     }

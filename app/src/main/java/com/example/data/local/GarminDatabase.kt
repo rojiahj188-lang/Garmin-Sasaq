@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [LocationEntity::class, TrackEntity::class, OfflineMapTileEntity::class, CachedMapTileEntity::class, EmergencyContactEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class GarminDatabase : RoomDatabase() {
@@ -46,8 +46,43 @@ abstract class GarminDatabase : RoomDatabase() {
                     dao.insertLocations(getPrepopulatedLocations())
                     dao.insertOfflineTiles(getPrepopulatedOfflineTiles())
                     dao.insertEmergencyContacts(getPrepopulatedContacts())
+                    dao.insertTracks(getPrepopulatedTracks())
                 }
             }
+        }
+
+        fun getPrepopulatedTracks(): List<TrackEntity> {
+            val now = System.currentTimeMillis()
+            return listOf(
+                TrackEntity(
+                    title = "Jalur Puncak Rinjani via Sembalun",
+                    activityType = "PENDAKIAN",
+                    startTime = now - 86400000 * 2,
+                    endTime = now - 86400000 * 2 + 28800000L,
+                    distanceMeters = 11800.0,
+                    maxElevationMeters = 3726.0,
+                    minElevationMeters = 1156.0,
+                    elevationGainMeters = 2570.0,
+                    avgSpeedKmh = 2.4,
+                    waypointsCount = 6,
+                    notes = "Rute: Gerbang Sembalun -> Pos 1 -> Pos 2 -> Pos 3 -> Plawangan Sembalun -> Puncak Rinjani 3726m.",
+                    elevationPointsData = "0.0:1156;1500.0:1300;3200.0:1500;5100.0:1800;7400.0:2639;9800.0:3200;11800.0:3726"
+                ),
+                TrackEntity(
+                    title = "Ekspedisi Bukit Pergasingan 1750m",
+                    activityType = "PENDAKIAN",
+                    startTime = now - 86400000 * 5,
+                    endTime = now - 86400000 * 5 + 14400000L,
+                    distanceMeters = 4200.0,
+                    maxElevationMeters = 1750.0,
+                    minElevationMeters = 1100.0,
+                    elevationGainMeters = 650.0,
+                    avgSpeedKmh = 2.8,
+                    waypointsCount = 4,
+                    notes = "Tanjakan terjal panorama petak sawah Sembalun dan dinding kaldera timur.",
+                    elevationPointsData = "0.0:1100;800.0:1220;1800.0:1410;2900.0:1590;4200.0:1750"
+                )
+            )
         }
 
         fun getPrepopulatedContacts(): List<EmergencyContactEntity> {
